@@ -9,14 +9,20 @@
 	$pid = $query['pid'];	
 	$move = $query['move'];
 	
-	if($pid == "") {
-		$err = new errorInput();
-		$err->reason = "Pid not specified";
-		echo json_encode($err);
+	if ($pid == "") {
+		makeError("Pid not specified");
 		return;
 	} else if ($move == "") {
+		makeError("Move not specified");
+		return;
+	} else if(!doesPidExist($pid)) {
 		$err = new errorInput();
-		$err->reason = "Move not specified";
+		$err->reason = "Unknown pid";
+		echo json_encode($err);
+		return;
+	} else if(!validMove($move)) {
+		$err = new errorInput();
+		$err->reason = "Invalid slot, " . $move;
 		echo json_encode($err);
 		return;
 	}
@@ -24,6 +30,24 @@
 	echo "Successful input!";
 	
 	
+	
+	/* Functions */
+	
+	function doesPidExist($pid) {
+		return file_exists("../Writable/" . $pid . ".txt");
+	}
+	
+	function makeError($msg) {
+		$err = new errorInput();
+		$err->reason = $msg;
+		echo json_encode($err);
+	}
+	
+	function validMove($move){
+		return $move >= 0 && $move < 7;
+	}
+	
+	/* Classes */
 	
 	class move {
 		public $response = false;
