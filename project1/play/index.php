@@ -55,7 +55,7 @@
 	$obj->move['slot'] = $aiDecision;
 	
 	// check if the game is won
-	$rowUser = checkIfWin($loadedBoard, 1);	// For user
+	$rowUser = checkIfWin($loadedBoard, 1);
 	$rowAi = checkIfWin($loadedBoard, 2);
 	if($rowUser.length != 0) {		// user won, row isn't empty
 		$obj->ack_move['isWin'] = true;
