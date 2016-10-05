@@ -6,3 +6,9 @@
 * Play: Allows the player to input a move, alters the board accordingly, and saves the altered board in a file
 * Board: Contains board, and functions to interact with the board (game logic)
 * commFunctions: Common functions: `makeError($msg)` and `addToTextDoc($pid, $jsonstring)`
+
+### For Eric
+**I finished writing it but I have not tested anything yet. Please test everything and fix any bugs you can find.**
+Thanks,
+Martin
+
