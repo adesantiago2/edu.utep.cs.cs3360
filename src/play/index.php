@@ -1,11 +1,16 @@
 <?php
-	$url = "https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+	require_once("../Writable/board.php");
+	require_once("../Writable/commonFunctions.php");
+	$board = new board();
 	
-	// Reference: http://stackoverflow.com/questions/11480763/how-to-get-parameters-from-this-url-string
+	/* Getting queries from url
+	 * Reference: http://stackoverflow.com/questions/11480763/how-to-get-parameters-from-this-url-string
+	 */
+	$url = "https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 	$parts = parse_url($url);
 	parse_str($parts['query'], $query);
 	
-	// getting vars from query string of url
+	/* getting vars from query string of url */
 	$pid = $query['pid'];	
 	$move = $query['move'];
 	
@@ -16,46 +21,24 @@
 		makeError("Move not specified");
 		return;
 	} else if(!doesPidExist($pid)) {
-		$err = new errorInput();
-		$err->reason = "Unknown pid";
-		echo json_encode($err);
+		makeError("Unknown pid");
 		return;
 	} else if(!validMove($move)) {
-		$err = new errorInput();
-		$err->reason = "Invalid slot, " . $move;
-		echo json_encode($err);
+		makeError("Invalid slot, " . $move);
 		return;
 	}
 	
 	echo "Successful input!";
+	setupBoard();
+	$moves = makeMove($move, $pid, $board->boardOfTokensArray);
+	add_to_text_doc($pid, $json);
 	
-	
-	
-	/* Functions */
+	/*			Functions			 */
 	
 	function doesPidExist($pid) {
 		return file_exists("../Writable/" . $pid . ".txt");
 	}
 	
-	function makeError($msg) {
-		$err = new errorInput();
-		$err->reason = $msg;
-		echo json_encode($err);
-	}
-	
 	function validMove($move){
 		return $move >= 0 && $move < 7;
-	}
-	
-	/* Classes */
-	
-	class move {
-		public $response = false;
-		public $ack_move = array("slot"=>-1, "isWin"=>false, "isDraw"=>false, "row"=>0);
-		public $move = array("slot"=>-1, "isWin"=>false, "isDraw"=>false, "row"=>0);
-	}
-	
-	class errorInput {
-		public $response = false;
-		public $reason = "";
 	}

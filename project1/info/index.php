@@ -1,6 +1,13 @@
 <?php
+	/* This file will give information about the board but does not actually do anything functional */
+	// Input: localhost:XXXX/info
+	// Output: {"width":7,"height":6,"strategies":["Smart","Random"]}
+
+	// Require board so that we can use it's information
 	require_once("../Writable/board.php");
 	$board = new board();
+	
+	// Create an object to encode into json
 	$gInfo = new gameInfo();
 	
 	$gInfo->width = $board->cols;
