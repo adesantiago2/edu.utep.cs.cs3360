@@ -5,7 +5,7 @@
 
 	// Require board so that we can use it's information
 	require_once("../Writable/board.php");
-	$board = new board();
+	$board = new Board();
 	
 	// Create an object to encode into json
 	$gInfo = new gameInfo();

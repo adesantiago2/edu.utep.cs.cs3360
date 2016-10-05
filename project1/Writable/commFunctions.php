@@ -8,7 +8,7 @@
 	}
 	
 	/* Validates parameters, opens a file with the name of the pid.txt, and writes the json string to that file */
-	function add_to_text_doc($pid, $jsonString) {
+	function addToTextDoc($pid, $jsonString) {
 		if (!empty($pid) && !empty($jsonString)) {
 			$fp = fopen("../Writable/" . $pid . ".txt", "a");	// a is for writing only
 			fputs($fp, nl2br($jsonString));

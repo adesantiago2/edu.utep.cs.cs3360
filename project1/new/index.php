@@ -14,9 +14,22 @@
 	$strategy = $query['strategy'];
 	
 	if (validateStrategy($strategy)) {
-		//TODO: Create a new game
-		//TODO: Create a new file
-		//TODO: save the state of the game to the file (might just be the board, you should be able to recreate the game based off of this)
+		// Generate response
+		require_once("../Writable/commFunctions.php");
+		$obj = new jsonObject();
+		$obj->pid = uniqid();
+		$responseEncoded = json_encode($obj);
+		echo $responseEncoded;
+		
+		// Create a new game
+		require_once("../Writable/board.php");
+		$board = createBoard($strategy);
+		//save the state of the game to the file (might just be the board, you should be able to recreate the game based off of this)
+		$boardEncoded = json_encode($board);
+		
+		// Save to file
+		$finalString = $responseEncoded . "\n" . $boardEncoded;
+		addToTextDoc($obj->pid, $finalString);
 	}
 	
 	
@@ -30,4 +43,12 @@
 			return false;
 		}
 		return true;
+	}
+	
+	
+	/*			Classes			*/
+	
+	class jsonObject {
+		public $response = true;
+		public $pid;
 	}
