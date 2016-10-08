@@ -168,9 +168,9 @@
 		$topRow = $board[0];
 		foreach($topRow as $key=>$value){
 			if($value == 0)
-				return true;
+				return false;	// not tie if there is >= one spot open
 		}
-		return false;
+		return true;
 	}
 	
 	/*			Classes			*/
@@ -178,10 +178,8 @@
 	class Board {
 		// Used for the state of the game
 		public $boardArr;
-		public $count = 0;
 		public $strategy;
 		
 		public $rows = 6;
 		public $cols = 7;
-		public $maxTokens = 6 * 7;
 	}

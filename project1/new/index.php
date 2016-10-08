@@ -15,14 +15,14 @@
 	
 	if (validateStrategy($strategy)) {
 		// Generate response
-		require_once("../Writable/commFunctions.php");
+		require_once("../play/commFunctions.php");
 		$obj = new jsonObject();
 		$obj->pid = uniqid();
 		$responseEncoded = json_encode($obj);
 		echo $responseEncoded;
 		
 		// Create a new game
-		require_once("../Writable/board.php");
+		require_once("../play/board.php");
 		$board = createBoard($strategy);
 		//save the state of the game to the file (might just be the board, you should be able to recreate the game based off of this)
 		$boardEncoded = json_encode($board);

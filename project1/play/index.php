@@ -14,7 +14,7 @@
 	$pid = $query['pid'];
 	$move = $query['move'];
 	
-	require_once("commonFunctions.php");
+	require_once("commFunctions.php");
 	
 	if ($pid == "") {	// check if pid exists
 		makeError("Pid not specified");
@@ -31,49 +31,61 @@
 	}
 	
 	//$pid = "57f56419ca015"; //For testing purposes
-	$myfile = fopen("$pid".".txt", "r+");
-	$jsonArray = fgets($myfile);//read line which contains array in jason format
-	$gameObject = json_decode($jsonArray);
+	$myfile = fopen("../Writable/" . $pid . ".txt", "r+");
+	
+	$pidLine = fgets($myfile);	// ignored for now
+	$gameObject = json_decode(fgets($myfile));
 	$loadedBoard = $gameObject->boardArr;
 	fclose($myfile);
 	
-	
 	require_once("board.php");
-	
 	
 	// getting response ready
 	$obj = new jsonObject();
 
-	$obj = checksAndMove($obj, $loadedBoard, 1);//one for human player
-	$obj = checksAndMove($obj, $loadedBoard, 2);//AI
+	//$obj = checksAndMove($obj, $loadedBoard, 1);//one for human player
+	//$obj = checksAndMove($obj, $loadedBoard, 2);//AI
+	
+	$obj = userMovePlay($obj, $move);
+	$obj = aiMovePlay($obj, $strategy);
 	
 	// saves altered board as json text, save into file and echo it
 	$responseEncoded = json_encode($obj);
 	echo $responseEncoded;//echoes json repsonse
 	$boardEncoded = json_encode($loadedBoard);
-	addToTextDoc($pid, $boardEncoded);//changed this to only save board
+	
+	
+	addToTextDoc($pid, $pidLine);
+	addToTextDoc($pid, $obj);//changed this to only save board
 	
 	
 	
 	/*			Functions			*/
 	
+	function userMovePlay($obj, $move) {
+		$obj->boardArr = userMove($obj->boardArr, $move);
+		$obj = checksAndMove($obj, 1);
+		return $obj;
+	}
+	
+	function aiMovePlay($obj, $strategy) {
+		$obj->boardArr = aiMove($obj->boardArr, $strategy);
+		$obj = checksAndMove($obj, 2);
+		return $obj;
+	}
+	
 	//this function automizes the turn functionality.
 	//PARAM: 	$boardObj is the board object
 	//			$who is int, 1 representing human player, 2 representing AI.
-	function checksAndMove($obj, $loadedBoard, $who){//RETURNS updated object with final params
-		$loadedBoard = makeMove($loadedBoard, $move, $who);
+	function checksAndMove($obj, $who){//RETURNS updated object with final params
+		$loadedBoard = $obj->boardArr;
 		if($who == 1)
 			$obj->ack_move['slot'] = $move;
 		else
 			$obj->move['slot'] = $aiDecision;
 		
-		if(checkIfTie){//game tied, set proper params
-			$obj->ack_move['isDraw'] = true;
-			$obj->move['isDraw'] = true;
-			deleteFile($pid);
-			return $obj;
-		}
-		else if(checkIfWin($loadedBoard)){//game won, set winning coordinates
+		
+		if(checkIfWin($loadedBoard)){		//game won, set winning coordinates
 			if($who == 1){
 				$obj->ack_move['isWin'] = true;
 				$obj->ack_move['row'] = getWinArray($loadedBoard);
@@ -82,13 +94,11 @@
 				$obj->move['isWin'] = true;
 				$obj->move['row'] = getWinArray($loadedBoard);
 			}
-			deleteFile($pid);
 			return $obj;
 		}
-		else if(checkIfTie){//check for tie again, since AI moved
+		else if(checkIfTie($loadedBoard)){		//game tied, set proper params
 			$obj->ack_move['isDraw'] = true;
 			$obj->move['isDraw'] = true;
-			deleteFile($pid);
 			return $obj;
 		}
 		else 
@@ -96,13 +106,13 @@
 	}
 	
 	function withinRange($move){
-		require_once("../Writable/board.php");
+		require_once("board.php");
 		$board = new Board();
 		return $move >= 0 && $move < $board->cols;
 	}
 	
-	function deleteFile($pid) {
-		// TODO: delete the file associated with the pid to cleanup after a game is finished
+	function doesPidExist($pid){
+		return file_exists("../Writable/" . $pid . ".txt");
 	}
 	
 	
