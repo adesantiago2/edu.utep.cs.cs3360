@@ -14,7 +14,7 @@
 	$pid = $query['pid'];
 	$move = $query['move'];
 	
-	require_once("../Writable/commonFunctions.php");
+	require_once("commonFunctions.php");
 	
 	if ($pid == "") {	// check if pid exists
 		makeError("Pid not specified");
@@ -30,56 +30,70 @@
 		return;
 	}
 	
-	
-	// create instance of board loaded/parsed from pid file json
-	$myfile = fopen("../"."$pid".".txt", "r+");
-	fgets($myfile);//move to second line
-	$jsonArray = fgets($myfile);//read second line which contains array in jason format
-	$arrayDecoded = json_decode($jsonArray);
-	$jsonCount = fgets($myfile);//read third line which contains count amount in jason format
-	$countDecoded = json_decode($jsonCount);
-	$jsonStrat = fgets($myfile);//read third line which contains count amount in jason format
-	$strategyDecoded = json_decode($jsonStrat);
-	$loadedBoard = loadBoard($arrayDecoded, $countDecoded, $strategyDecoded);
+	//$pid = "57f56419ca015"; //For testing purposes
+	$myfile = fopen("$pid".".txt", "r+");
+	$jsonArray = fgets($myfile);//read line which contains array in jason format
+	$gameObject = json_decode($jsonArray);
+	$loadedBoard = $gameObject->boardArr;
 	fclose($myfile);
 	
-	//calls makeMove for user, gets the AI's decision and call makeMove for AI, saves altered board
-	require_once("../Writable/board.php");
-	$loadedBoard = userMove($loadedBoard, $move);
-	$aiDecision = aiMove($loadedBoard);		// seperated AI move because here I get the column number
-	$loadedBoard = makeMove($loadedBoard, $aiDecision);		// here I get the row array
+	
+	require_once("board.php");
+	
 	
 	// getting response ready
 	$obj = new jsonObject();
-	$obj->ack_move['slot'] = $move;
-	$obj->move['slot'] = $aiDecision;
-	
-	// check if the game is won
-	$rowUser = checkIfWin($loadedBoard, 1);
-	$rowAi = checkIfWin($loadedBoard, 2);
-	if($rowUser.length != 0) {		// user won, row isn't empty
-		$obj->ack_move['isWin'] = true;
-		$obj->ack_move['row'] = $row;
-		deleteFile($pid);
-	} else if($rowAi.length != 0) {		// ai won, row isn't empty
-		$obj->move['isWin'] = true;
-		$obj->move['row'] = $row;
-		deleteFile($pid);
-	} else if($loadedBoard->count == $loadedBoard->maxTokens) {	// check if the game is draw
-		$obj->ack_move['isDraw'] = 	true;
-		$obj->move['isDraw'] = true;
-		deleteFile($pid);
-	}
+
+	$obj = checksAndMove($obj, $loadedBoard, 1);//one for human player
+	$obj = checksAndMove($obj, $loadedBoard, 2);//AI
 	
 	// saves altered board as json text, save into file and echo it
 	$responseEncoded = json_encode($obj);
-	echo $responseEncoded;
+	echo $responseEncoded;//echoes json repsonse
 	$boardEncoded = json_encode($loadedBoard);
-	addToTextDoc($pid, $responseEncoded . "\n" . $boardEncoded);
+	addToTextDoc($pid, $boardEncoded);//changed this to only save board
 	
 	
 	
 	/*			Functions			*/
+	
+	//this function automizes the turn functionality.
+	//PARAM: 	$boardObj is the board object
+	//			$who is int, 1 representing human player, 2 representing AI.
+	function checksAndMove($obj, $loadedBoard, $who){//RETURNS updated object with final params
+		$loadedBoard = makeMove($loadedBoard, $move, $who);
+		if($who == 1)
+			$obj->ack_move['slot'] = $move;
+		else
+			$obj->move['slot'] = $aiDecision;
+		
+		if(checkIfTie){//game tied, set proper params
+			$obj->ack_move['isDraw'] = true;
+			$obj->move['isDraw'] = true;
+			deleteFile($pid);
+			return $obj;
+		}
+		else if(checkIfWin($loadedBoard)){//game won, set winning coordinates
+			if($who == 1){
+				$obj->ack_move['isWin'] = true;
+				$obj->ack_move['row'] = getWinArray($loadedBoard);
+			}
+			else{
+				$obj->move['isWin'] = true;
+				$obj->move['row'] = getWinArray($loadedBoard);
+			}
+			deleteFile($pid);
+			return $obj;
+		}
+		else if(checkIfTie){//check for tie again, since AI moved
+			$obj->ack_move['isDraw'] = true;
+			$obj->move['isDraw'] = true;
+			deleteFile($pid);
+			return $obj;
+		}
+		else 
+			return obj;
+	}
 	
 	function withinRange($move){
 		require_once("../Writable/board.php");

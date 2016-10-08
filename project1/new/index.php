@@ -38,7 +38,7 @@
 	
 	function validateStrategy($strategy) {
 		if($strategy != "Random" && $strategy != "Smart") {
-			require_once("../Writable/commFunctions.php");
+			require_once("../play/commFunctions.php");
 			makeError("Strategy not specified or wrong input");
 			return false;
 		}
