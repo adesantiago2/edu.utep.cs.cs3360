@@ -4,7 +4,7 @@
 	 * */
 	function createBoard($strategy){
 		$board = new Board();
-		$board->boardArr = array_fill(0, $board->rows - 1, array_fill(0, $board->cols - 1, 0));
+		$board->boardArr = array_fill(0, $board->rows, array_fill(0, $board->cols, 0));
 		$board->strategy = $strategy;
 		return $board;
 	}
@@ -19,7 +19,6 @@
 	
 	function makeMove($board, $col, $tokenType){//COLUMN MUST BE INDEXED TO 0
 		//no need to check if column full
-	
 		for($i = sizeof($board)-1; $i > 0; $i--){
 			if($board[$i][$col] == 0){
 				$board[$i][$col] = $tokenType;
@@ -171,6 +170,18 @@
 				return false;	// not tie if there is >= one spot open
 		}
 		return true;
+	}
+	
+	function print_array($arr){
+		$x = 1;
+		foreach ($arr as $row) {
+			echo "Row: $x - | ";
+			foreach($row as $col){
+				echo $col."  | ";
+			}
+			echo "<br>";
+			$x++;
+		}
 	}
 	
 	/*			Classes			*/

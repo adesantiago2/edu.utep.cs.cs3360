@@ -28,8 +28,8 @@
 		$boardEncoded = json_encode($board);
 		
 		// Save to file
-		$finalString = $responseEncoded . "\n" . $boardEncoded;
-		addToTextDoc($obj->pid, $finalString);
+		//$finalString = $responseEncoded . "\n" . $boardEncoded;
+		addToTextDoc($obj->pid, $boardEncoded);
 	}
 	
 	

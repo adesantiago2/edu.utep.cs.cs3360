@@ -30,79 +30,80 @@
 		return;
 	}
 	
-	//$pid = "57f56419ca015"; //For testing purposes
+	//get array from file
 	$myfile = fopen("../Writable/" . $pid . ".txt", "r+");
-	
-	$pidLine = fgets($myfile);	// ignored for now
-	$gameObject = json_decode(fgets($myfile));
-	$loadedBoard = $gameObject->boardArr;
+	$firstLine = fgets($myfile);
+	$gameObject = json_decode($firstLine);
 	fclose($myfile);
 	
 	require_once("board.php");
 	
 	// getting response ready
 	$obj = new jsonObject();
-
-	//$obj = checksAndMove($obj, $loadedBoard, 1);//one for human player
-	//$obj = checksAndMove($obj, $loadedBoard, 2);//AI
-	
-	$obj = userMovePlay($obj, $move);
-	$obj = aiMovePlay($obj, $strategy);
+	$arrObjs = checksAndMove($obj, $gameObject, $move, 1);//human player
+	$obj = $arrObjs[0]; $gameObject = $arrObjs[1];
+	$arrObjs = checksAndMove($obj, $gameObject, -1, 2);//AI
+	$obj = $arrObjs[0]; $gameObject = $arrObjs[1];
 	
 	// saves altered board as json text, save into file and echo it
 	$responseEncoded = json_encode($obj);
 	echo $responseEncoded;//echoes json repsonse
-	$boardEncoded = json_encode($loadedBoard);
+	$boardEncoded = json_encode($gameObject);
+
+	//for interactive purposes
+	//echo nl2br("\n");
+	//print_array($gameObject->boardArr);////////////////////////////////////////////////////////////////
+	//echo nl2br("\n");
 	
-	
-	addToTextDoc($pid, $pidLine);
-	addToTextDoc($pid, $obj);//changed this to only save board
+	addToTextDoc($pid, $boardEncoded);//changed this to only save board
 	
 	
 	
 	/*			Functions			*/
 	
-	function userMovePlay($obj, $move) {
-		$obj->boardArr = userMove($obj->boardArr, $move);
-		$obj = checksAndMove($obj, 1);
-		return $obj;
-	}
-	
-	function aiMovePlay($obj, $strategy) {
-		$obj->boardArr = aiMove($obj->boardArr, $strategy);
-		$obj = checksAndMove($obj, 2);
-		return $obj;
-	}
-	
 	//this function automizes the turn functionality.
-	//PARAM: 	$boardObj is the board object
+	//PARAM: 	$obj is json object
+	//			$gameObject is game board object
+	//			$move is user specified move (CHANGED TO AI MOVE IN-FUNCTION)
 	//			$who is int, 1 representing human player, 2 representing AI.
-	function checksAndMove($obj, $who){//RETURNS updated object with final params
-		$loadedBoard = $obj->boardArr;
-		if($who == 1)
+	function checksAndMove($obj, $gameObject, $move, $who){//RETURNS array containing [0]: json object and [1]: gameBoard object
+		$loadedBoard = $gameObject->boardArr;
+		if($who == 1){
 			$obj->ack_move['slot'] = $move;
-		else
-			$obj->move['slot'] = $aiDecision;
-		
-		
-		if(checkIfWin($loadedBoard)){		//game won, set winning coordinates
-			if($who == 1){
-				$obj->ack_move['isWin'] = true;
-				$obj->ack_move['row'] = getWinArray($loadedBoard);
-			}
-			else{
-				$obj->move['isWin'] = true;
-				$obj->move['row'] = getWinArray($loadedBoard);
-			}
-			return $obj;
+			$gameObject->boardArr = makeMove($loadedBoard, $move, $who);
 		}
-		else if(checkIfTie($loadedBoard)){		//game tied, set proper params
+		else{
+			$move = aiMove($loadedBoard, $gameObject->strategy);
+			$obj->move['slot'] = $move;
+			$gameObject->boardArr = makeMove($loadedBoard, $move, $who);
+		}
+		
+		if(checkIfTie($gameObject->boardArr)){//game tied, set proper params
 			$obj->ack_move['isDraw'] = true;
 			$obj->move['isDraw'] = true;
-			return $obj;
+			return [$obj, $gameObject];
 		}
-		else 
-			return obj;
+		else if(checkIfWin($gameObject->boardArr)){//game won, set winning coordinates
+			$winningArray = getWinArray($gameObject->boardArr);
+			$winningToken = $gameObject->boardArr[$winningArray[1]][$winningArray[0]];
+			if($winningToken == 1){
+				$obj->ack_move['isWin'] = true;
+				$obj->ack_move['row'] = $winningArray;
+			}
+			else if($winningToken == 2){
+				$obj->move['isWin'] = true;
+				$obj->move['row'] = $winningArray;
+			}
+			return [$obj, $gameObject];
+		}
+		else if(checkIfTie($gameObject->boardArr)){//check for tie again, since AI moved
+			$obj->ack_move['isDraw'] = true;
+			$obj->move['isDraw'] = true;
+			return [$obj, $gameObject];
+		}
+		else{
+			return [$obj, $gameObject];
+		}
 	}
 	
 	function withinRange($move){
