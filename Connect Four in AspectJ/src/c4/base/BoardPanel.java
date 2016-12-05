@@ -235,4 +235,5 @@ public class BoardPanel extends JPanel {
        int dy = y - cY;
        return dx * dx + dy * dy <= r * r;
     }
+
 }

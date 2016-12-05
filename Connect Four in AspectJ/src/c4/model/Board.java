@@ -1,3 +1,7 @@
+/**
+ * @author Tomas Chagoya, Martin Morales
+ */
+
 package c4.model;
 
 import java.util.ArrayList;

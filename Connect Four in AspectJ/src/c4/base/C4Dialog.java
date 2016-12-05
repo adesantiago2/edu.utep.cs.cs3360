@@ -129,7 +129,7 @@ public class C4Dialog extends JDialog implements BoardPanel.Game {
             }
         }
     }    
-
+    
     /** Start a new game. */
     private void startNewGame() {
         board.clear();
